@@ -1,0 +1,24 @@
+## Interface: 120100, 120105
+
+## DefaultState: enabled
+
+## Title: FishKeeper
+## Notes: Tracks every fishing catch, counts what you hooked, and prices the haul with TradeSkillMaster.
+## Version: 12.1.0
+## Author: Frost-Lightbringer
+## X-Curse-Project-ID: 1684360
+
+## IconTexture: Interface\Icons\Inv_fishingpole_01
+
+## AddonCompartmentFunc: FishKeeper_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: FishKeeper_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: FishKeeper_OnCompartmentLeave
+
+## DefaultState: enabled
+
+## SavedVariables: FishKeeperDB
+## OptionalDeps: TradeSkillMaster
+
+Core.lua
+Prices.lua
+UI.lua

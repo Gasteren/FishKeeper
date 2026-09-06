@@ -1,0 +1,33 @@
+name: Upload to CurseForge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create zip
+        run: |
+          mkdir FishKeeper
+          cp *.lua *.toc Bindings.xml FishKeeper/
+          zip -r FishKeeper.zip FishKeeper
+
+      - name: Upload to CurseForge
+        uses: itsmeow/curseforge-upload@v3
+        with:
+          token: "${{ secrets.FISHKEEPER }}"
+          project_id: "0"
+          game_endpoint: "wow"
+          file_path: "FishKeeper.zip"
+          game_versions: "12.1.0"
+          release_type: "release"
+          display_name: "FishKeeper - ${{ github.event.head_commit.timestamp || github.sha }}"
+          changelog: "${{ github.event.head_commit.message || 'Manual release' }}"
+          changelog_type: "markdown"

@@ -1,0 +1,11 @@
+<Bindings>
+	<Binding name="FISHKEEPER_TOGGLE" category="ADDONS">
+		if FishKeeper then FishKeeper:Toggle() end
+	</Binding>
+	<Binding name="FISHKEEPER_RESETSESSION" category="ADDONS">
+		if FishKeeper then FishKeeper:ResetSession() end
+	</Binding>
+	<Binding name="FISHKEEPER_PAUSE" category="ADDONS">
+		if FishKeeper then FishKeeper:TogglePause() end
+	</Binding>
+</Bindings>
