@@ -50,8 +50,299 @@ local FISHING_SPELL_IDS = {
 	[471008] = true, -- Midnight Fishing (profession)
 }
 
--- Midnight fish. Used to hide default loot chat when FishKeeper announce is on.
 local FISH_ITEM_IDS = {
+	-- Classic
+	[6289] = true, -- Raw Longjaw Mud Snapper
+	[6291] = true, -- Raw Brilliant Smallfish
+	[6292] = true, -- 10 Pound Mud Snapper
+	[6294] = true, -- 12 Pound Mud Snapper
+	[6295] = true, -- 15 Pound Mud Snapper
+	[6303] = true, -- Raw Slitherskin Mackerel
+	[6307] = true, -- Message in a Bottle
+	[6308] = true, -- Raw Bristle Whisker Catfish
+	[6309] = true, -- 17 Pound Catfish
+	[6310] = true, -- 19 Pound Catfish
+	[6311] = true, -- 22 Pound Catfish
+	[6317] = true, -- Raw Loch Frenzy
+	[6358] = true, -- Oily Blackmouth
+	[6359] = true, -- Firefin Snapper
+	[6360] = true, -- Steelscale Crushfish
+	[6361] = true, -- Raw Rainbow Fin Albacore
+	[6362] = true, -- Raw Rockscale Cod
+	[6363] = true, -- 26 Pound Catfish
+	[6364] = true, -- 32 Pound Catfish
+	[6458] = true, -- Oil Covered Fish
+	[6522] = true, -- Deviate Fish
+	[6643] = true, -- Bloated Smallfish
+	[6645] = true, -- Bloated Mud Snapper
+	[6647] = true, -- Bloated Catfish
+	[8365] = true, -- Raw Mithril Head Trout
+	[8366] = true, -- Bloated Trout
+	[12238] = true, -- Darkshore Grouper
+	[13422] = true, -- Stonescale Eel
+	[13754] = true, -- Raw Glossy Mightfish
+	[13755] = true, -- Winter Squid
+	[13756] = true, -- Raw Summer Bass
+	[13757] = true, -- Lightning Eel
+	[13758] = true, -- Raw Redgill
+	[13759] = true, -- Raw Nightfin Snapper
+	[13760] = true, -- Raw Sunscale Salmon
+	[13876] = true, -- 40 Pound Grouper
+	[13877] = true, -- 47 Pound Grouper
+	[13878] = true, -- 53 Pound Grouper
+	[13879] = true, -- 59 Pound Grouper
+	[13880] = true, -- 68 Pound Grouper
+	[13881] = true, -- Bloated Redgill
+	[13882] = true, -- 42 Pound Redgill
+	[13883] = true, -- 45 Pound Redgill
+	[13884] = true, -- 49 Pound Redgill
+	[13885] = true, -- 34 Pound Redgill
+	[13886] = true, -- 37 Pound Redgill
+	[13888] = true, -- Darkclaw Lobster
+	[13889] = true, -- Raw Whitescale Salmon
+	[13893] = true, -- Large Raw Mightfish
+	[13901] = true, -- 15 Pound Salmon
+	[13902] = true, -- 18 Pound Salmon
+	[13903] = true, -- 22 Pound Salmon
+	[13904] = true, -- 24 Pound Salmon
+	[13905] = true, -- 32 Pound Salmon
+	[21071] = true, -- Raw Sagefish
+	[21153] = true, -- Raw Greater Sagefish
+	[4603] = true, -- Raw Spotted Yellowtail
+	[5523] = true, -- Small Barnacled Clam
+	[5524] = true, -- Thick-shelled Clam
+	[7973] = true, -- Big-mouth Clam
+	[15874] = true, -- Soft-shelled Clam
+	[19803] = true, -- Keefer's Angelfish
+	[19804] = true, -- Pale Ghoulfish
+	[19805] = true, -- Keefer's Angelfish (alt)
+	[19806] = true, -- Dezian Queenfish
+	[19807] = true, -- Speckled Tastyfish
+	[19808] = true, -- Rockhide Strongfish
+	[19975] = true, -- Zulian Mudskunk
+	[20766] = true, -- Slimy Bag
+	[20767] = true, -- Scum Covered Bag
+	[20768] = true, -- Oozing Bag
+	[21113] = true, -- Watertight Trunk
+	[21150] = true, -- Iron Bound Trunk
+	[21228] = true, -- Mistslicked Bag
+	[21741] = true, -- Scum Covered Bag
+	[34109] = true, -- Weather-Beaten Journal
+	[45328] = true, -- Bloated Dreadfin
+	[45902] = true, -- Giant Sewer Rat
+	[46109] = true, -- Sea Turtle
+
+	-- Burning Crusade
+	[24476] = true, -- Jaggal Clam
+	[27422] = true, -- Barbed Gill Trout
+	[27425] = true, -- Spotted Feltail
+	[27429] = true, -- Zangarian Sporefish
+	[27435] = true, -- Figluster's Mudfish
+	[27437] = true, -- Icefin Bluefish
+	[27438] = true, -- Golden Darter
+	[27439] = true, -- Furious Crawdad
+	[27515] = true, -- Huge Spotted Feltail
+	[27516] = true, -- Enormous Barbed Gill Trout
+	[33823] = true, -- Bloodfin Catfish
+	[33824] = true, -- Crescent-Tail Skullfish
+	[34861] = true, -- Sharpened Fish Hook
+	[34863] = true, -- Bag of Fishing Treasures
+	[35313] = true, -- Bloated Barbed Gill Trout
+	[35348] = true, -- Bag of Fishing Treasures
+
+	-- Wrath
+	[40199] = true, -- Pygmy Suckerfish
+	[41800] = true, -- Deep Sea Monsterbelly
+	[41801] = true, -- Moonglow Cuttlefish
+	[41802] = true, -- Imperial Manta Ray
+	[41803] = true, -- Rockfin Grouper
+	[41805] = true, -- Borean Man O' War
+	[41806] = true, -- Musselback Sculpin
+	[41807] = true, -- Dragonfin Angelfish
+	[41808] = true, -- Bonescale Snapper
+	[41809] = true, -- Glacial Salmon
+	[41810] = true, -- Fangtooth Herring
+	[41812] = true, -- Barrelhead Goby
+	[41813] = true, -- Nettlefish
+	[41814] = true, -- Glassfin Minnow
+	[43646] = true, -- Fountain Goldfish
+	[43647] = true, -- Shimmering Minnow
+	[43652] = true, -- Slippery Eel
+	[45904] = true, -- Terrorfish
+	[45905] = true, -- Bloodtooth Frenzy
+	[46007] = true, -- Bag of Fishing Treasures
+
+	-- Cataclysm
+	[53062] = true, -- Sharptooth
+	[53063] = true, -- Mountain Trout
+	[53064] = true, -- Highland Guppy
+	[53065] = true, -- Albino Cavefish
+	[53066] = true, -- Blackbelly Mudfish
+	[53067] = true, -- Striped Lurker
+	[53068] = true, -- Algaefin Rockfish
+	[53069] = true, -- Murglesnout
+	[53070] = true, -- Fathom Eel
+	[53071] = true, -- Algaefin Rockfish (alt)
+	[53072] = true, -- Deepsea Sagefish
+	[67539] = true, -- Tiny Chest
+	[67495] = true, -- Strange Bloated Stomach
+
+	-- Mists of Pandaria
+	[74856] = true, -- Jade Lungfish
+	[74857] = true, -- Giant Mantis Shrimp
+	[74859] = true, -- Emperor Salmon
+	[74860] = true, -- Redbelly Mandarin
+	[74861] = true, -- Tiger Gourami
+	[74863] = true, -- Jewel Danio
+	[74864] = true, -- Reef Octopus
+	[74865] = true, -- Krasarang Paddlefish
+	[74866] = true, -- Golden Carp
+	[83064] = true, -- Spinefish
+	[88496] = true, -- Sealed Crate
+	[94932] = true, -- Tiny Red Carp
+	[94933] = true, -- Tiny Blue Carp
+	[94934] = true, -- Tiny Green Carp
+	[94935] = true, -- Tiny White Carp
+
+	-- Warlords of Draenor
+	[111589] = true, -- Crescent Saberfish
+	[111595] = true, -- Crescent Saberfish Flesh
+	[111601] = true, -- Enormous Crescent Saberfish
+	[111651] = true, -- Small Jawless Skulker
+	[111652] = true, -- Small Blind Lake Sturgeon
+	[111656] = true, -- Jawless Skulker
+	[111658] = true, -- Small Fat Sleeper
+	[111659] = true, -- Small Fire Ammonite
+	[111660] = true, -- Small Sea Scorpion
+	[111662] = true, -- Small Abyssal Gulper Eel
+	[111663] = true, -- Small Blackwater Whiptail
+	[111664] = true, -- Blackwater Whiptail
+	[111665] = true, -- Fat Sleeper
+	[111666] = true, -- Blind Lake Sturgeon
+	[111667] = true, -- Fire Ammonite
+	[111668] = true, -- Sea Scorpion
+	[111669] = true, -- Jawless Skulker Flesh
+	[111670] = true, -- Fire Ammonite Tentacle
+	[111671] = true, -- Enormous Jawless Skulker
+	[111672] = true, -- Enormous Fat Sleeper
+	[111673] = true, -- Enormous Blind Lake Sturgeon
+	[111674] = true, -- Enormous Fire Ammonite
+	[111675] = true, -- Enormous Sea Scorpion
+	[111676] = true, -- Enormous Jawless Skulker
+	[112623] = true, -- Pack of Fishing Supplies
+	[112633] = true, -- Frostdeep Minnow
+	[116817] = true, -- Blackwater Whiptail Lunker
+	[116818] = true, -- Jawless Skulker Lunker
+	[116819] = true, -- Fat Sleeper Lunker
+	[116820] = true, -- Blind Lake Sturgeon Lunker
+	[116821] = true, -- Fire Ammonite Lunker
+	[116822] = true, -- Sea Scorpion Lunker
+	[118565] = true, -- Savage Piranha
+	[124669] = true, -- Darkmoon Daggermaw
+	[127994] = true, -- Felmouth Frenzy
+
+	-- Legion
+	[124107] = true, -- Cursed Queenfish
+	[124108] = true, -- Mossgill Perch
+	[124109] = true, -- Highmountain Salmon
+	[124110] = true, -- Stormray
+	[124111] = true, -- Runescale Koi
+	[124112] = true, -- Black Barracuda
+	[133607] = true, -- Silver Mackerel
+	[133725] = true, -- Leyshimmer Blenny
+	[133739] = true, -- Barnacled Bag of Goods
+	[138967] = true, -- Silver Mackerel (alt)
+	[139573] = true, -- The Witchmother's Beckoning
+	[139653] = true, -- Ancient Highmountain Salmon
+	[139654] = true, -- Ghostly Queenfish
+	[139655] = true, -- Terrorfin
+	[139656] = true, -- Thundering Stormray
+	[139657] = true, -- Ancient Mossgill
+	[139658] = true, -- Mountain Puffer
+	[139660] = true, -- Ancient Black Barracuda
+	[146848] = true, -- Fragmented Enchantment
+
+	-- Battle for Azeroth
+	[152543] = true, -- Sand Shifter
+	[152544] = true, -- Slimy Mackerel
+	[152545] = true, -- Frenzied Fangtooth
+	[152546] = true, -- Lane Snapper
+	[152547] = true, -- Great Sea Catfish
+	[152548] = true, -- Tiragarde Perch
+	[152549] = true, -- Redtail Loach
+	[160711] = true, -- Aromatic Fish Oil
+	[162515] = true, -- Midnight Salmon
+	[168302] = true, -- Viper Fish
+	[168645] = true, -- Moist Fillet
+	[168646] = true, -- Mauve Stinger
+	[174327] = true, -- Malformed Gnasher
+	[174328] = true, -- Aberrant Voidfin
+
+	-- Shadowlands
+	[173032] = true, -- Lost Sole
+	[173033] = true, -- Iridescent Amberjack
+	[173034] = true, -- Silvergill Pike
+	[173035] = true, -- Pocked Bonefish
+	[173036] = true, -- Spinefin Piranha
+	[173037] = true, -- Elysian Thade
+	[187702] = true, -- Precursor Placoderm
+	[187704] = true, -- Protoflesh
+	[187707] = true, -- Progenitor Essentia
+
+	-- Dragonflight
+	[194701] = true, -- Ominous Conch
+	[194730] = true, -- Scalebelly Mackerel
+	[194966] = true, -- Thousandbite Piranha
+	[194967] = true, -- Aileron Seamoth
+	[194968] = true, -- Cerulean Spinefish
+	[194969] = true, -- Temporal Dragonhead
+	[194970] = true, -- Islefin Dorado
+	[197742] = true, -- Ribbed Mollusk Meat
+	[198395] = true, -- Dull Spined Clam
+	[198397] = true, -- Rainbow Pearl
+	[198438] = true, -- Draconic Recipe in a Bottle
+	[198614] = true, -- Soggy Clump of Darkmoon Cards
+	[199338] = true, -- Copper Coin of the Isles
+	[199339] = true, -- Silver Coin of the Isles
+	[199340] = true, -- Gold Coin of the Isles
+	[199344] = true, -- Magma Thresher
+	[199696] = true, -- Iskaaran Ice Axe
+	[200061] = true, -- Prismatic Leaper
+	[200074] = true, -- Frosted Rimefin Tuna
+	[202072] = true, -- Frigid Floe Fish
+	[202073] = true, -- Calamitous Carp
+	[202074] = true, -- Kingfin, the Wise Whiskerfish
+	[202105] = true, -- Rusted Coin of the Isles
+
+	-- The War Within
+	[220134] = true, -- Dilly-Dally Dace
+	[220135] = true, -- Bloody Perch
+	[220136] = true, -- Crystalline Sturgeon
+	[220137] = true, -- Bismuth Bitterling
+	[220138] = true, -- Nibbling Minnow
+	[220139] = true, -- Whispering Stargazer
+	[220140] = true, -- Goldengill Trout
+	[220141] = true, -- Quiet River Bass
+	[220142] = true, -- Dornish Pike
+	[220143] = true, -- Specular Rainbowfish
+	[220144] = true, -- Roaring Anglerseeker
+	[220145] = true, -- Pale Huskfish
+	[220146] = true, -- Kaheti Slum Shark
+	[220148] = true, -- Arathor Hammerfish
+	[220149] = true, -- Sanguine Dogfish
+	[220150] = true, -- Queen's Lurefish
+	[220151] = true, -- Regal Dottyback
+	[220152] = true, -- Cursed Ghoulfish
+	[220153] = true, -- Spiked Sea Raven
+	[220154] = true, -- Awoken Coelacanth
+	[220155] = true, -- "Gold" Fish
+	[222096] = true, -- Goldengill Trout (quality)
+	[222533] = true, -- Goldengill Trout (quality)
+	[225559] = true, -- Hungering Shimmerfin
+	[227668] = true, -- Undermine Clam
+	[227669] = true, -- Undermine Clam Meat
+
+	-- Midnight
 	[238365] = true, -- Sin'dorei Swarmer
 	[238366] = true, -- Lynxfish
 	[238367] = true, -- Root Crab
@@ -473,6 +764,17 @@ function FK:IsFishItem(itemID, name, link)
 			if type(itemType) == "string" and itemType:lower() == "fish" then
 				return true
 			end
+		end
+	end
+	if type(name) == "string" and name ~= "" then
+		local l = name:lower()
+		if l:find("feast", 1, true) or l:find("recipe", 1, true) or l:find("fishing pole", 1, true) then
+			return false
+		end
+		if l:find("fish", 1, true) or l:find("trout", 1, true) or l:find("salmon", 1, true)
+			or l:find("perch", 1, true) or l:find("clam", 1, true) or l:find("minnow", 1, true)
+			or l:find("sturgeon", 1, true) or l:find("bloated", 1, true) then
+			return true
 		end
 	end
 	return false
