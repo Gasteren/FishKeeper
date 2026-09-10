@@ -14,11 +14,10 @@
 ## AddonCompartmentFuncOnEnter: FishKeeper_OnCompartmentEnter
 ## AddonCompartmentFuncOnLeave: FishKeeper_OnCompartmentLeave
 
-## DefaultState: enabled
-
 ## SavedVariables: FishKeeperDB
 ## OptionalDeps: TradeSkillMaster
 
 Core.lua
 Prices.lua
 UI.lua
+Bindings.xml

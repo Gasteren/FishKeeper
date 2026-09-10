@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 FishKeeper = FishKeeper or {}
 local FK = FishKeeper
 FK.name = ADDON_NAME
-FK.version = "1.6.3"
+FK.version = "1.6.6"
 FK.recentItems = {}
 
 BINDING_HEADER_FISHKEEPER = "FishKeeper"
@@ -418,9 +418,11 @@ local defaults = {
 		shown = true,
 		resetSessionOnLogin = false,
 		sort = "value",
+		sortDir = "desc",
 		compact = true,
 		compactOnFish = true,
 		theme = "steel",
+		exportFormat = "discord", -- discord (```) | wowhead ([code])
 	},
 	chars = {},
 	sessions = {},
@@ -495,6 +497,7 @@ function FK:Session()
 	end
 	s.treasures = s.treasures or 0
 	s.elapsed = s.elapsed or 0
+	s.zone = s.zone or ""
 	return s
 end
 
@@ -512,6 +515,9 @@ function FK:NewSession(key)
 		moneyCopper = 0,
 		items = {},
 		zone = "",
+		mapID = nil,
+		mapX = nil,
+		mapY = nil,
 	}
 end
 
@@ -540,6 +546,7 @@ function FK:EnsureTimerStarted()
 	s.paused = false
 	s.elapsed = 0
 	s.timerStart = time()
+	self:NoteLocation()
 end
 
 function FK:MaybeCompactOnFish()
@@ -583,6 +590,26 @@ function FK:FormatDuration(seconds)
 		return string.format("%d:%02d:%02d", h, m, s)
 	end
 	return string.format("%d:%02d", m, s)
+end
+
+-- Integer for 1%+, extra decimals under 1% so rare fish are not shown as 0%.
+function FK:FormatRate(hits, total)
+	hits = tonumber(hits) or 0
+	total = math.max(1, tonumber(total) or 1)
+	local pct = (hits / total) * 100
+	if pct <= 0 then
+		return "0%"
+	end
+	if pct >= 1 then
+		return string.format("%.0f%%", pct)
+	end
+	if pct >= 0.1 then
+		return string.format("%.1f%%", pct)
+	end
+	if pct >= 0.005 then
+		return string.format("%.2f%%", pct)
+	end
+	return "<0.01%"
 end
 
 function FK:IsTreasureName(name)
@@ -722,6 +749,73 @@ function FK:CurrentZone()
 		end
 	end
 	return GetZoneText() or ""
+end
+
+function FK:CurrentLocation()
+	local name = self:CurrentZone()
+	local mapID
+	if C_Map and C_Map.GetBestMapForUnit then
+		mapID = C_Map.GetBestMapForUnit("player")
+	end
+	local x, y
+	if mapID and C_Map and C_Map.GetPlayerMapPosition then
+		local ok, pos = pcall(C_Map.GetPlayerMapPosition, mapID, "player")
+		if ok and pos then
+			if pos.GetXY then
+				x, y = pos:GetXY()
+			else
+				x, y = pos.x, pos.y
+			end
+		end
+	end
+	if type(x) == "number" and type(y) == "number" then
+		x = x * 100
+		y = y * 100
+	else
+		x, y = nil, nil
+	end
+	return name, mapID, x, y
+end
+
+function FK:NoteLocation()
+	local s = self:Session()
+	local name, mapID, x, y = self:CurrentLocation()
+	if name and name ~= "" then
+		s.zone = name
+	end
+	if mapID then
+		s.mapID = mapID
+	end
+	if x and y then
+		s.mapX = x
+		s.mapY = y
+	end
+end
+
+function FK:FormatZoneLine()
+	local s = self:Session()
+	local zone = s.zone or ""
+	local mapID, x, y = s.mapID, s.mapX, s.mapY
+	if zone == "" or not mapID or not x then
+		local n, id, px, py = self:CurrentLocation()
+		if zone == "" then
+			zone = n or ""
+		end
+		mapID = mapID or id
+		x = x or px
+		y = y or py
+	end
+	if (not zone or zone == "") and not mapID then
+		return nil
+	end
+	if mapID and type(x) == "number" and type(y) == "number" then
+		local label = (zone ~= "" and zone) or "Map"
+		return string.format("Zone: %s | /way #%d %.2f, %.2f", label, mapID, x, y)
+	end
+	if zone ~= "" then
+		return "Zone: " .. zone
+	end
+	return nil
 end
 
 local function ItemIDFromLink(link)
@@ -1042,7 +1136,7 @@ function FK:NoteCatch()
 	local char = self:Char()
 	session.catches = (session.catches or 0) + 1
 	char.lifetimeCatches = (char.lifetimeCatches or 0) + 1
-	session.zone = self:CurrentZone()
+	self:NoteLocation()
 end
 
 function FK:NoteTreasure()
@@ -1056,7 +1150,7 @@ function FK:NoteTreasure()
 	local char = self:Char()
 	session.treasures = (session.treasures or 0) + 1
 	char.lifetimeTreasures = (char.lifetimeTreasures or 0) + 1
-	session.zone = self:CurrentZone()
+	self:NoteLocation()
 end
 
 local function EnsureItem(store, itemID, name, link, quality, icon)
@@ -1302,6 +1396,7 @@ function FK:OnFishingCast(spellID)
 	self.lastCastTime = now
 	self.fishingUntil = now + 45
 	self:EnsureTimerStarted()
+	self:NoteLocation()
 	self:MaybeCompactOnFish()
 	local session = self:Session()
 	local char = self:Char()
@@ -1319,6 +1414,20 @@ function FK:OnFishingStop(spellID)
 	self.fishingUntil = GetTime() + 4
 end
 
+function FK:SetSort(mode)
+	if mode ~= "value" and mode ~= "count" and mode ~= "name" and mode ~= "rate" and mode ~= "quality" then
+		return
+	end
+	local s = self.db.settings
+	if s.sort == mode then
+		s.sortDir = (s.sortDir == "asc") and "desc" or "asc"
+	else
+		s.sort = mode
+		s.sortDir = (mode == "name") and "asc" or "desc"
+	end
+	self:UpdateUI()
+end
+
 function FK:SortedItems(store)
 	local list = {}
 	if not store then
@@ -1328,23 +1437,35 @@ function FK:SortedItems(store)
 		list[#list + 1] = row
 	end
 	local sortMode = self.db.settings.sort or "value"
+	local asc = self.db.settings.sortDir == "asc"
+	local catches = math.max(1, (self:Session().catches) or 1)
 	table.sort(list, function(a, b)
+		local cmp = 0
 		if sortMode == "count" then
-			if a.count ~= b.count then
-				return a.count > b.count
-			end
+			cmp = (a.count or 0) - (b.count or 0)
 		elseif sortMode == "name" then
-			return (a.name or "") < (b.name or "")
-		elseif sortMode == "quality" then
-			if (a.quality or 0) ~= (b.quality or 0) then
-				return (a.quality or 0) > (b.quality or 0)
+			local an, bn = a.name or "", b.name or ""
+			if an < bn then
+				cmp = -1
+			elseif an > bn then
+				cmp = 1
 			end
+		elseif sortMode == "rate" then
+			local ra = (a.hits or a.count or 0) / catches
+			local rb = (b.hits or b.count or 0) / catches
+			cmp = ra - rb
+		elseif sortMode == "quality" then
+			cmp = (a.quality or 0) - (b.quality or 0)
 		else
 			local va = self:GetItemPrice(a.link, a.itemID, a.quality) * (a.count or 0)
 			local vb = self:GetItemPrice(b.link, b.itemID, b.quality) * (b.count or 0)
-			if va ~= vb then
-				return va > vb
+			cmp = va - vb
+		end
+		if cmp ~= 0 then
+			if asc then
+				return cmp < 0
 			end
+			return cmp > 0
 		end
 		return (a.name or "") < (b.name or "")
 	end)
@@ -1388,6 +1509,9 @@ function FK:SessionTotals()
 		elapsed = self:SessionElapsed(),
 		paused = s.paused and true or false,
 		zone = s.zone or "",
+		mapID = s.mapID,
+		mapX = s.mapX,
+		mapY = s.mapY,
 	}
 end
 
@@ -1426,6 +1550,131 @@ function FK:ResetLifetime()
 	print("|cff7eb8c9FishKeeper|r Lifetime stats cleared for " .. key .. ".")
 end
 
+function FK:BuildExportText()
+	local totals = self:SessionTotals()
+	local list = self:SortedItems(self:Session().items)
+	local catches = math.max(1, totals.catches or 1)
+
+	local function Fit(s, n)
+		s = tostring(s or "")
+		if #s > n then
+			return s:sub(1, math.max(1, n - 2)) .. ".."
+		end
+		return s
+	end
+	local function Pad(s, n, right)
+		s = Fit(s, n)
+		if #s >= n then
+			return s
+		end
+		local fill = string.rep(" ", n - #s)
+		if right then
+			return fill .. s
+		end
+		return s .. fill
+	end
+
+	local nameW = 18
+	local rows = {}
+	for i = 1, #list do
+		local row = list[i]
+		local name = row.name or "?"
+		if row.from == "treasure" then
+			name = "[chest] " .. name
+		end
+		if #name > nameW then
+			nameW = #name
+		end
+		local hits = row.hits or row.count or 0
+		local value = self:GetItemPrice(row.link, row.itemID, row.quality) * (row.count or 0)
+		rows[#rows + 1] = {
+			name = name,
+			qty = row.count or 0,
+			rate = self:FormatRate(hits, catches),
+			value = value,
+		}
+	end
+	if nameW > 34 then
+		nameW = 34
+	end
+
+	local qtyW, pctW, valW = 5, 6, 14
+	local function Line(name, qty, pct, value)
+		return Pad(name, nameW, false)
+			.. "  "
+			.. Pad(qty, qtyW, true)
+			.. "  "
+			.. Pad(pct, pctW, true)
+			.. "  "
+			.. Pad(value, valW, true)
+	end
+	local rule = string.rep("-", nameW + qtyW + pctW + valW + 6)
+
+	local lines = {
+		"FishKeeper  v" .. tostring(self.version or ""),
+		self:CharKey(),
+		"",
+	}
+	local zoneLine = self:FormatZoneLine()
+	if zoneLine then
+		lines[#lines + 1] = zoneLine
+	end
+	lines[#lines + 1] = "Time:     " .. self:FormatDuration(totals.elapsed)
+	lines[#lines + 1] = "Catches:  " .. tostring(totals.catches or 0)
+	lines[#lines + 1] = "Items:    " .. tostring(totals.items or 0)
+	lines[#lines + 1] = "Chests:   " .. tostring(totals.treasures or 0)
+	lines[#lines + 1] = "Value:    " .. self:FormatMoneyPlain(totals.copper) .. "  (" .. self:PriceSourceLabel() .. ")"
+	lines[#lines + 1] = ""
+	lines[#lines + 1] = Line("Catch", "Qty", "%", "Value")
+	lines[#lines + 1] = rule
+	for i = 1, #rows do
+		local r = rows[i]
+		lines[#lines + 1] = Line(r.name, tostring(r.qty), r.rate, self:FormatMoneyPlain(r.value))
+	end
+	lines[#lines + 1] = rule
+	lines[#lines + 1] = Line("Total", tostring(totals.items or 0), "", self:FormatMoneyPlain(totals.copper))
+
+	local body = table.concat(lines, "\n")
+	local mode = self.db and self.db.settings.exportFormat or "discord"
+	if mode == "wowhead" then
+		return "[code]\n" .. body .. "\n[/code]"
+	end
+	return "```\n" .. body .. "\n```"
+end
+
+function FK:SetExportFormat(mode)
+	if mode ~= "discord" and mode ~= "wowhead" then
+		return
+	end
+	self.db.settings.exportFormat = mode
+	if self.ShowExportOverlay and self.export and self.export:IsShown() then
+		self:ShowExportOverlay()
+	end
+end
+
+function FK:ShowExport()
+	if not self.frame then
+		self:CreateUI()
+	end
+	if self.db.settings.compact then
+		self.db.settings.compact = false
+		self.userExpanded = true
+		self:ApplyLayout()
+	end
+	if self.confirm then
+		self.confirm:Hide()
+	end
+	if self.options then
+		self.options:Hide()
+	end
+	if self.body then
+		self.body:Show()
+	end
+	if self.ShowExportOverlay then
+		self:ShowExportOverlay()
+	end
+end
+
 function FK:UpdateUI()
 	if self.RefreshUI then
 		self:RefreshUI()
@@ -1441,6 +1690,7 @@ function FK:PrintHelp()
 	print("  /fk price region   TSM dbregionmarketavg")
 	print("  /fk price min      TSM dbminbuyout")
 	print("  /fk session        Reset this session")
+	print("  /fk export         Export this session (Discord or Wowhead)")
 	print("  /fk reset confirm  Clear lifetime stats for this character")
 	print("  /fk lock           Lock/unlock window")
 	print("  /fk theme          Cycle window theme")
@@ -1458,6 +1708,8 @@ function FK:OnSlash(msg)
 		self:Toggle()
 	elseif cmd == "session" or cmd == "reset" and rest == "session" then
 		self:ResetSession()
+	elseif cmd == "export" then
+		self:ShowExport()
 	elseif cmd == "reset" then
 		if rest:lower() == "confirm" or rest:lower() == "lifetime confirm" then
 			self:ResetLifetime()
@@ -1497,12 +1749,18 @@ function FK:OnSlash(msg)
 		end
 	elseif cmd == "sort" then
 		rest = rest:lower()
-		if rest == "value" or rest == "count" or rest == "name" or rest == "quality" then
-			self.db.settings.sort = rest
-			self:UpdateUI()
-			print("|cff7eb8c9FishKeeper|r Sort: " .. rest)
+		if rest == "qty" then
+			rest = "count"
+		elseif rest == "%" or rest == "pct" then
+			rest = "rate"
+		elseif rest == "catch" then
+			rest = "name"
+		end
+		if rest == "value" or rest == "count" or rest == "name" or rest == "quality" or rest == "rate" then
+			self:SetSort(rest)
+			print("|cff7eb8c9FishKeeper|r Sort: " .. rest .. " " .. (self.db.settings.sortDir or "desc"))
 		else
-			print("|cff7eb8c9FishKeeper|r Sort must be value, count, name, or quality.")
+			print("|cff7eb8c9FishKeeper|r Sort must be catch, qty, %, or value.")
 		end
 	elseif cmd == "help" or cmd == "?" then
 		self:PrintHelp()

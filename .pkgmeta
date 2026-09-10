@@ -1,0 +1,11 @@
+package-as: FishKeeper
+license-output: LICENSE.txt
+manual-changelog: CHANGELOG.md
+optional-dependencies:
+  - tradeskill-master
+ignore:
+  - .git
+  - .github
+  - .gitignore
+  - .gitattributes
+  - "*.zip"

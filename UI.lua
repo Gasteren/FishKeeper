@@ -125,6 +125,34 @@ local function MakeChip(parent, iconSize)
 	return chip
 end
 
+local function MakeColHeader(parent, label, width, justify, mode)
+	local b = CreateFrame("Button", nil, parent)
+	b:SetHeight(16)
+	if width then
+		b:SetWidth(width)
+	end
+	b.text = b:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	b.text:SetAllPoints()
+	b.text:SetJustifyH(justify or "LEFT")
+	b.text:SetText(label)
+	b.mode = mode
+	b.label = label
+	b:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+	b:SetScript("OnClick", function()
+		FK:SetSort(mode)
+	end)
+	b:SetScript("OnEnter", function(selfBtn)
+		GameTooltip:SetOwner(selfBtn, "ANCHOR_TOP")
+		GameTooltip:SetText("Sort by " .. label)
+		GameTooltip:AddLine("Click again to reverse.", 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	b:SetScript("OnLeave", function()
+		GameTooltip:Hide()
+	end)
+	return b
+end
+
 function FK:Theme()
 	local id = self.db and self.db.settings.theme or "steel"
 	return THEMES[id] or THEMES.steel, id
@@ -182,6 +210,9 @@ function FK:ApplyTheme()
 	if frame.reset and frame.reset.text then
 		paint(frame.reset.text, theme.muted)
 	end
+	if frame.exportBtn and frame.exportBtn.text then
+		paint(frame.exportBtn.text, theme.muted)
+	end
 	if frame.priceBtn and frame.priceBtn.text then
 		paint(frame.priceBtn.text, theme.title)
 	end
@@ -227,6 +258,9 @@ function FK:ToggleCompact()
 	self.userExpanded = not s.compact
 	if s.compact and self.options then
 		self.options:Hide()
+	end
+	if s.compact and self.export then
+		self.export:Hide()
 	end
 	self:ApplyLayout()
 	self:RefreshUI()
@@ -342,6 +376,12 @@ function FK:ApplyLayout()
 		if frame.venomChip then
 			frame.venomChip:Hide()
 		end
+		if frame.exportBtn then
+			frame.exportBtn:Hide()
+		end
+		if self.export then
+			self.export:Hide()
+		end
 		frame.sizeBtn.text:SetText("+")
 	else
 		frame.title:Show()
@@ -403,6 +443,12 @@ function FK:ApplyLayout()
 		frame.reset:SetWidth(58)
 		frame.reset:ClearAllPoints()
 		frame.reset:SetPoint("BOTTOMRIGHT", -10, 34)
+		if frame.exportBtn then
+			frame.exportBtn:Show()
+			frame.exportBtn:SetWidth(58)
+			frame.exportBtn:ClearAllPoints()
+			frame.exportBtn:SetPoint("TOP", frame.reset, "BOTTOM", 0, -1)
+		end
 		frame.stats:ClearAllPoints()
 		frame.stats:SetPoint("TOPLEFT", 14, -28)
 		frame.stats:SetPoint("RIGHT", frame.pauseBtn, "LEFT", -8, 0)
@@ -513,6 +559,20 @@ function FK:CreateUI()
 	end)
 	frame.reset = reset
 
+	local exportBtn = TinyButton(frame, 58, "[Export]")
+	exportBtn:SetPoint("TOP", reset, "BOTTOM", 0, -1)
+	exportBtn:Hide()
+	exportBtn:SetScript("OnClick", function()
+		FK:ShowExport()
+	end)
+	exportBtn:SetScript("OnEnter", function(selfBtn)
+		GameTooltip:SetOwner(selfBtn, "ANCHOR_LEFT")
+		GameTooltip:SetText("Export session")
+		GameTooltip:AddLine("Copy as text. Paste into chat, Discord, or a spreadsheet.", 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	frame.exportBtn = exportBtn
+
 	local pauseBtn = TinyButton(frame, 58, "[Pause]")
 	pauseBtn:SetPoint("RIGHT", reset, "LEFT", -4, 0)
 	pauseBtn:SetScript("OnClick", function()
@@ -549,6 +609,12 @@ function FK:CreateUI()
 			FK.db.settings.compact = false
 			FK.userExpanded = true
 			FK:ApplyLayout()
+		end
+		if FK.export then
+			FK.export:Hide()
+		end
+		if FK.confirm then
+			FK.confirm:Hide()
 		end
 		if FK.options:IsShown() then
 			FK.options:Hide()
@@ -671,24 +737,19 @@ function FK:CreateUI()
 	colHead:SetHeight(16)
 	frame.colHead = colHead
 
-	local colName = colHead:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-	colName:SetPoint("LEFT", 22, 0)
-	colName:SetText("Catch")
-	local colGold = colHead:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	local colGold = MakeColHeader(colHead, "Value", 64, "RIGHT", "value")
 	colGold:SetPoint("RIGHT", -6, 0)
-	colGold:SetWidth(64)
-	colGold:SetJustifyH("RIGHT")
-	colGold:SetText("Value")
-	local colRate = colHead:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	local colRate = MakeColHeader(colHead, "%", 40, "RIGHT", "rate")
 	colRate:SetPoint("RIGHT", colGold, "LEFT", -8, 0)
-	colRate:SetWidth(40)
-	colRate:SetJustifyH("RIGHT")
-	colRate:SetText("%")
-	local colQty = colHead:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	local colQty = MakeColHeader(colHead, "Qty", 36, "RIGHT", "count")
 	colQty:SetPoint("RIGHT", colRate, "LEFT", -8, 0)
-	colQty:SetWidth(36)
-	colQty:SetJustifyH("RIGHT")
-	colQty:SetText("Qty")
+	local colName = MakeColHeader(colHead, "Catch", nil, "LEFT", "name")
+	colName:SetPoint("LEFT", 22, 0)
+	colName:SetPoint("RIGHT", colQty, "LEFT", -8, 0)
+	frame.colName = colName
+	frame.colQty = colQty
+	frame.colRate = colRate
+	frame.colGold = colGold
 
 	-- Catch list
 	local body = CreateFrame("Frame", nil, frame)
@@ -739,7 +800,7 @@ function FK:CreateUI()
 		row.rate = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
 		row.rate:SetPoint("RIGHT", row, "RIGHT", -64, 0)
 		row.rate:SetJustifyH("RIGHT")
-		row.rate:SetWidth(40)
+		row.rate:SetWidth(44)
 
 		row.value = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 		row.value:SetPoint("RIGHT", row, "RIGHT", -6, 0)
@@ -944,6 +1005,109 @@ function FK:CreateUI()
 		confirm:Hide()
 	end)
 
+	-- Export overlay
+	local export = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+	export:SetAllPoints(frame)
+	export:SetFrameStrata("HIGH")
+	export:EnableMouse(true)
+	export:SetBackdrop({
+		bgFile = "Interface\\Buttons\\WHITE8X8",
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+		tile = true,
+		tileSize = 8,
+		edgeSize = 12,
+		insets = { left = 3, right = 3, top = 3, bottom = 3 },
+	})
+	export:SetBackdropColor(0.05, 0.06, 0.07, 0.94)
+	export:SetBackdropBorderColor(0.55, 0.58, 0.60, 0.7)
+	export:Hide()
+	self.export = export
+
+	local eTitle = export:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	eTitle:SetPoint("TOP", 0, -12)
+	eTitle:SetText("Export session")
+	export.title = eTitle
+
+	local eHint = export:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+	eHint:SetPoint("TOP", eTitle, "BOTTOM", 0, -2)
+	eHint:SetText("Ctrl+C to copy")
+	export.hint = eHint
+
+	local eScroll = CreateFrame("ScrollFrame", "FishKeeperExportScroll", export)
+	eScroll:SetPoint("TOPLEFT", 14, -40)
+	eScroll:SetPoint("BOTTOMRIGHT", -14, 38)
+	eScroll:EnableMouseWheel(true)
+	eScroll:SetScript("OnMouseWheel", function(selfScroll, delta)
+		local cur = selfScroll:GetVerticalScroll()
+		local max = selfScroll:GetVerticalScrollRange() or 0
+		selfScroll:SetVerticalScroll(math.min(max, math.max(0, cur - delta * 24)))
+	end)
+	export.scroll = eScroll
+
+	local eEdit = CreateFrame("EditBox", "FishKeeperExportEdit", eScroll)
+	eEdit:SetMultiLine(true)
+	eEdit:SetAutoFocus(false)
+	if not pcall(eEdit.SetFont, eEdit, "Fonts\\ARIALN.TTF", 12, "") then
+		eEdit:SetFontObject(GameFontHighlightSmall)
+	end
+	eEdit:SetMaxLetters(0)
+	eEdit:SetTextInsets(2, 2, 2, 2)
+	eEdit:SetScript("OnEscapePressed", function(selfBox)
+		selfBox:ClearFocus()
+		export:Hide()
+	end)
+	eEdit:SetScript("OnEditFocusGained", function(selfBox)
+		selfBox:HighlightText()
+	end)
+	eEdit:SetScript("OnTextChanged", function(selfBox, userInput)
+		if userInput then
+			selfBox:SetText(FK._exportText or "")
+			selfBox:HighlightText()
+		end
+	end)
+	eScroll:SetScrollChild(eEdit)
+	export.edit = eEdit
+
+	local eClose = CreateFrame("Button", nil, export, "UIPanelButtonTemplate")
+	eClose:SetSize(80, 22)
+	eClose:SetPoint("BOTTOMRIGHT", -14, 10)
+	eClose:SetText("Close")
+	eClose:SetScript("OnClick", function()
+		eEdit:ClearFocus()
+		export:Hide()
+	end)
+
+	local eDiscord = TinyButton(export, 70, "[Discord]")
+	eDiscord:SetPoint("BOTTOMLEFT", 14, 12)
+	eDiscord:SetScript("OnClick", function()
+		FK:SetExportFormat("discord")
+	end)
+	eDiscord:SetScript("OnEnter", function(selfBtn)
+		GameTooltip:SetOwner(selfBtn, "ANCHOR_TOP")
+		GameTooltip:SetText("Discord")
+		GameTooltip:AddLine("Wraps the dump in ``` so columns stay aligned.", 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	export.discordBtn = eDiscord
+
+	local eWowhead = TinyButton(export, 78, "[Wowhead]")
+	eWowhead:SetPoint("LEFT", eDiscord, "RIGHT", 4, 0)
+	eWowhead:SetScript("OnClick", function()
+		FK:SetExportFormat("wowhead")
+	end)
+	eWowhead:SetScript("OnEnter", function(selfBtn)
+		GameTooltip:SetOwner(selfBtn, "ANCHOR_TOP")
+		GameTooltip:SetText("Wowhead")
+		GameTooltip:AddLine("Wraps the dump in [code] so Wowhead keeps the layout.", 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	export.wowheadBtn = eWowhead
+
+	export:SetScript("OnShow", function()
+		local w = math.max(220, (export:GetWidth() or WIDE) - 36)
+		eEdit:SetWidth(w)
+	end)
+
 	frame:SetScript("OnShow", function()
 		FK.db.settings.shown = true
 		FK:ApplyLayout()
@@ -1003,11 +1167,71 @@ function FK:ConfirmReset()
 	if self.options then
 		self.options:Hide()
 	end
+	if self.export then
+		self.export:Hide()
+	end
 	if self.body then
 		self.body:Show()
 	end
 	self.confirm:Show()
 	self:RefreshUI()
+end
+
+function FK:ShowExportOverlay()
+	if not self.frame then
+		self:CreateUI()
+	end
+	if not self.export then
+		return
+	end
+	local text = self:BuildExportText()
+	self._exportText = text
+	local edit = self.export.edit
+	if edit then
+		local w = math.max(220, (self.export:GetWidth() or WIDE) - 36)
+		edit:SetWidth(w)
+		edit:SetText(text)
+		edit:SetCursorPosition(0)
+		edit:HighlightText()
+		edit:SetFocus()
+	end
+	self:RefreshExportFormatButtons()
+	if self.confirm then
+		self.confirm:Hide()
+	end
+	if self.options then
+		self.options:Hide()
+	end
+	self.export:Show()
+	self:RefreshUI()
+end
+
+function FK:RefreshExportFormatButtons()
+	local export = self.export
+	if not export then
+		return
+	end
+	local theme = self:Theme()
+	local mode = self.db and self.db.settings.exportFormat or "discord"
+	local function paint(btn, active)
+		if not btn or not btn.text then
+			return
+		end
+		if active then
+			btn.text:SetTextColor(theme.title[1], theme.title[2], theme.title[3])
+		else
+			btn.text:SetTextColor(theme.muted[1], theme.muted[2], theme.muted[3])
+		end
+	end
+	paint(export.discordBtn, mode == "discord")
+	paint(export.wowheadBtn, mode == "wowhead")
+	if export.hint then
+		if mode == "wowhead" then
+			export.hint:SetText("Ctrl+C to copy. Paste into Wowhead.")
+		else
+			export.hint:SetText("Ctrl+C to copy. Paste into Discord.")
+		end
+	end
 end
 
 function FK:RefreshPauseButton()
@@ -1018,6 +1242,38 @@ function FK:RefreshPauseButton()
 	frame.pauseBtn.text:SetText(self:IsPaused() and "[Start]" or "[Pause]")
 	if frame.reset and frame.reset.text then
 		frame.reset.text:SetText("[Reset]")
+	end
+	if frame.exportBtn and frame.exportBtn.text then
+		frame.exportBtn.text:SetText("[Export]")
+	end
+end
+
+function FK:RefreshSortHeaders()
+	local frame = self.frame
+	if not frame then
+		return
+	end
+	local theme = self:Theme()
+	local mode = self.db and self.db.settings.sort or "value"
+	local arrow = (self.db and self.db.settings.sortDir == "asc") and " ^" or " v"
+	local cols = {
+		{ btn = frame.colName, id = "name" },
+		{ btn = frame.colQty, id = "count" },
+		{ btn = frame.colRate, id = "rate" },
+		{ btn = frame.colGold, id = "value" },
+	}
+	for i = 1, #cols do
+		local col = cols[i]
+		local btn = col.btn
+		if btn and btn.text then
+			if col.id == mode then
+				btn.text:SetText(btn.label .. arrow)
+				btn.text:SetTextColor(theme.title[1], theme.title[2], theme.title[3])
+			else
+				btn.text:SetText(btn.label)
+				btn.text:SetTextColor(theme.muted[1], theme.muted[2], theme.muted[3])
+			end
+		end
 	end
 end
 
@@ -1188,6 +1444,7 @@ function FK:RefreshUI()
 
 	frame.priceBtn.text:SetText("[" .. self:PriceSourceLabel() .. "]")
 	self:RefreshPauseButton()
+	self:RefreshSortHeaders()
 	self:RefreshTimer()
 
 	if compact then
@@ -1239,7 +1496,7 @@ function FK:RefreshUI()
 			row.count:SetText("x" .. tostring(data.count or 0))
 			local catches = math.max(1, totals.catches)
 			local hits = data.hits or data.count or 0
-			row.rate:SetText(string.format("%.0f%%", (hits / catches) * 100))
+			row.rate:SetText(self:FormatRate(hits, catches))
 			local value = self:GetItemPrice(data.link, data.itemID, data.quality) * (data.count or 0)
 			row.value:SetText(self:FormatMoney(value))
 			row.link = data.link

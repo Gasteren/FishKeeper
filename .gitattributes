@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.lua text
+*.toc text
+*.xml text
+*.md text
+*.yml text

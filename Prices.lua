@@ -157,6 +157,36 @@ function FK:FormatMoney(copper)
 	return string.format("%dc", c)
 end
 
+function FK:FormatMoneyPlain(copper)
+	copper = math.floor(tonumber(copper) or 0)
+	if copper < 0 then
+		copper = 0
+	end
+	local g = math.floor(copper / 10000)
+	local s = math.floor((copper % 10000) / 100)
+	local c = copper % 100
+	if g > 0 then
+		if s > 0 and c > 0 then
+			return string.format("%dg %ds %dc", g, s, c)
+		elseif s > 0 then
+			return string.format("%dg %ds", g, s)
+		elseif c > 0 then
+			return string.format("%dg %dc", g, c)
+		end
+		return string.format("%dg", g)
+	elseif s > 0 then
+		if c > 0 then
+			return string.format("%ds %dc", s, c)
+		end
+		return string.format("%ds", s)
+	end
+	return string.format("%dc", c)
+end
+
+function FK:FormatGoldNumber(copper)
+	return string.format("%.2f", (tonumber(copper) or 0) / 10000)
+end
+
 function FK:PriceSourceLabel()
 	if self.db and self.db.settings and self.db.settings.priceMode == "minbuyout" then
 		return "Min BO"
