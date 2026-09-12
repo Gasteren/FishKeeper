@@ -47,3 +47,12 @@ With **Announce catches** on, FishKeeper prints the catch and hides default loot
 | `/fk lock` | Lock/unlock the window |
 | `/fk theme` | Cycle window theme |
 | `/fk help` | Print help |
+
+## Release (GitHub → CurseForge)
+
+Repo root is this addon folder. A push to `main` zips the addon and uploads it.
+
+1. Create the GitHub repo (example: `Gasteren/FishKeeper`).
+2. Create the CurseForge WoW addon project and put its numeric id in `.github/workflows/release.yml` as `project_id`.
+3. Add repo secret `FISHKEEPER` (CurseForge API token).
+4. Push `main`, or run the workflow by hand.

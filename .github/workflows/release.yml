@@ -23,7 +23,7 @@ jobs:
         uses: itsmeow/curseforge-upload@v3
         with:
           token: "${{ secrets.FISHKEEPER }}"
-          project_id: "1684360"
+          project_id: "0"
           game_endpoint: "wow"
           file_path: "FishKeeper.zip"
           game_versions: "12.1.0"

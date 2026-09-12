@@ -183,6 +183,40 @@ function FK:FormatMoneyPlain(copper)
 	return string.format("%dc", c)
 end
 
+local function CommaGold(n)
+	local s = tostring(math.floor(n))
+	local k
+	while true do
+		s, k = s:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+		if k == 0 then
+			break
+		end
+	end
+	return s
+end
+
+-- Inline list value: 12g | 5s | 1c  (no coin textures, so it will not wrap)
+function FK:FormatMoneyPipes(copper)
+	copper = math.floor(tonumber(copper) or 0)
+	if copper < 0 then
+		copper = 0
+	end
+	local g = math.floor(copper / 10000)
+	local s = math.floor((copper % 10000) / 100)
+	local c = copper % 100
+	local parts = {}
+	if g > 0 then
+		parts[#parts + 1] = "|cffffd100" .. CommaGold(g) .. "g|r"
+	end
+	if s > 0 or (g > 0 and c > 0) then
+		parts[#parts + 1] = "|cffc7c7cf" .. tostring(s) .. "s|r"
+	end
+	if c > 0 or #parts == 0 then
+		parts[#parts + 1] = "|cffeda55f" .. tostring(c) .. "c|r"
+	end
+	return table.concat(parts, " | ")
+end
+
 function FK:FormatGoldNumber(copper)
 	return string.format("%.2f", (tonumber(copper) or 0) / 10000)
 end

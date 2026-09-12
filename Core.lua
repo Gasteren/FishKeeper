@@ -3,7 +3,7 @@ local ADDON_NAME = ...
 FishKeeper = FishKeeper or {}
 local FK = FishKeeper
 FK.name = ADDON_NAME
-FK.version = "1.6.6"
+FK.version = "12.1.0"
 FK.recentItems = {}
 
 BINDING_HEADER_FISHKEEPER = "FishKeeper"
@@ -461,6 +461,36 @@ function FK:CharKey()
 	end
 	realm = realm or GetRealmName() or "Unknown"
 	return name .. " - " .. realm
+end
+
+function FK:RegionLabel()
+	local portal
+	if GetCVar then
+		local ok, value = pcall(GetCVar, "portal")
+		if ok and type(value) == "string" and value ~= "" then
+			portal = value:upper()
+		end
+	end
+	if portal == "US" or portal == "EU" or portal == "KR" or portal == "TW" or portal == "CN" then
+		return portal
+	end
+	local region = GetCurrentRegion and GetCurrentRegion()
+	if region == 1 then
+		return "US"
+	elseif region == 3 then
+		return "EU"
+	elseif region == 2 then
+		return "KR"
+	elseif region == 4 then
+		return "TW"
+	elseif region == 5 then
+		return "CN"
+	end
+	return "?"
+end
+
+function FK:PlayerLine()
+	return self:CharKey() .. " - " .. self:RegionLabel()
 end
 
 function FK:Char()
@@ -1612,7 +1642,7 @@ function FK:BuildExportText()
 
 	local lines = {
 		"FishKeeper  v" .. tostring(self.version or ""),
-		self:CharKey(),
+		self:PlayerLine(),
 		"",
 	}
 	local zoneLine = self:FormatZoneLine()
