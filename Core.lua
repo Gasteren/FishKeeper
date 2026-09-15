@@ -2,7 +2,7 @@ local ADDON_NAME = ...
 
 FishKeeper = FishKeeper or {}
 local FK = FishKeeper
-FK.name = ADDON_NAME
+FK.name = FishKeeper
 FK.version = "12.1.0"
 FK.recentItems = {}
 
