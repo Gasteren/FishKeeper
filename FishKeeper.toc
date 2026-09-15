@@ -20,4 +20,3 @@
 Core.lua
 Prices.lua
 UI.lua
-Bindings.xml
