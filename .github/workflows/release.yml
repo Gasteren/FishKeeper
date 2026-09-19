@@ -26,7 +26,7 @@ jobs:
           project_id: "1684360"
           game_endpoint: "wow"
           file_path: "FishKeeper.zip"
-          game_versions: "12.1.0"
+          game_versions: "12.1.0,1.60.1"
           release_type: "release"
           display_name: "FishKeeper - ${{ github.event.head_commit.timestamp || github.sha }}"
           changelog: "${{ github.event.head_commit.message || 'Manual release' }}"
