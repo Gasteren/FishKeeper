@@ -4,7 +4,7 @@
 
 ## Title: FishKeeper
 ## Notes: Tracks every fishing catch, counts what you hooked, and prices the haul with TradeSkillMaster.
-## Version: 12.1.5
+## Version: 1.0.0
 ## Author: Frost-Lightbringer
 ## X-Curse-Project-ID: 1684360
 
