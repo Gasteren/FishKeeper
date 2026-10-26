@@ -3,7 +3,9 @@ local ADDON_NAME = ...
 FishKeeper = FishKeeper or {}
 local FK = FishKeeper
 FK.name = FishKeeper
-FK.version = "12.1.0"
+-- Read from the TOC's "## Version:" so it stays in sync.
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+FK.version = GetAddOnMetadata and GetAddOnMetadata(ADDON_NAME, "Version") or "unknown"
 FK.recentItems = {}
 
 BINDING_HEADER_FISHKEEPER = "FishKeeper"
