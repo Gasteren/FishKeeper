@@ -712,9 +712,19 @@ function FK:IsPatientTreasureLoot()
 	return false
 end
 
+-- 12.x clients (incl. WoW Forever) can hand addons "secret" values, such as an
+-- enemy's name as the spell target in combat. Comparing or indexing one throws.
+local issecretvalue = issecretvalue
+local function IsSecret(value)
+	return issecretvalue ~= nil and issecretvalue(value)
+end
+
 function FK:OnSpellcastSent(unit, target, spellID)
 	if unit and unit ~= "player" then
 		return
+	end
+	if IsSecret(target) then
+		target = nil
 	end
 	if self:IsFishingSpell(spellID) then
 		self:OnFishingCast(spellID)
@@ -744,6 +754,10 @@ function FK:InitDB()
 end
 
 function FK:IsFishingSpell(spellID)
+	-- Fishing casts are never secret, so a secret spell can't be fishing.
+	if IsSecret(spellID) then
+		return false
+	end
 	if spellID and FISHING_SPELL_IDS[spellID] then
 		return true
 	end
@@ -762,7 +776,7 @@ function FK:IsFishingSpell(spellID)
 	if not name and UnitCastingInfo then
 		name = UnitCastingInfo("player")
 	end
-	if not name then
+	if not name or IsSecret(name) then
 		return false
 	end
 	if PROFESSIONS_FISHING and name == PROFESSIONS_FISHING then
