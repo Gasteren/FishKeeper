@@ -2,7 +2,7 @@
 
 Retail World of Warcraft fishing tracker. Counts every catch, lists what you hooked, and prices the haul with TradeSkillMaster.
 
-**Game:** Retail (Midnight, interface 120100 / 120105)  
+**Game:** Retail (Midnight, interface 120100 / 120105 / 120107)  
 **Optional:** [TradeSkillMaster](https://www.tradeskillmaster.com/) for auction values  
 **Author:** frostaphim
 
